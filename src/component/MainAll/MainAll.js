@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
@@ -14,14 +14,62 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import { MicNone } from '@material-ui/icons';
 
 function MainAll() {
-    return (
-        <div>
-            <Search></Search>
-            <ETFTable></ETFTable>
-        </div>
-    )
+    const [error, setError] = useState(null);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [items, setItems] = useState([]);
+
+    // // Note: the empty deps array [] means
+    // // this useEffect will run once
+    // // similar to componentDidMount()
+    useEffect(() => {
+        fetch("https://mis.twse.com.tw/stock/data/all_etf.txt", {
+            mode: 'cors'
+            // cache: 'no-cache'
+            // header: {
+            //     'Access-Control-Allow-Origin': '*'
+            // }
+        })
+            .then(res => res.json())
+            // .then(res => console.log(res))
+            .then(
+                (result) => {
+                    setIsLoaded(true);
+                    setItems(result);
+                    console.log(result)
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    setIsLoaded(true);
+                    setError(error);
+                }
+            )
+    }, [])
+    if (error) {
+        return <div>Error: {error.message}</div>;
+    } else if (!isLoaded) {
+        return <div>Loading...</div>;
+    } else {
+        return (
+            <ul>
+                {/* {items.map(item => (
+                    <li key={item.id}>
+                        {item.name} {item.price}
+                    </li>
+                ))} */}
+            </ul>
+        );
+    }
+    // return (
+    //     <div>
+    //         <Search></Search>
+    //         <ETFTable></ETFTable>
+    //     </div>
+    // )
 }
 
 function Search() {
@@ -42,43 +90,62 @@ function Search() {
     );
 }
 
-function createData(name, calories, fat, carbs, protein) {
-    return { name, calories, fat, carbs, protein };
+
+var data = {
+    header: [
+        "代碼", "名稱", "淨值", "市值", "折溢價", "折溢%"
+    ],
+    content: [
+        {
+            number: "0050",
+            name: "元大台灣50",
+            net_worth: "137.24",
+            market_price: "136.95",
+            discount: -0.29,
+            discount_rate: -0.21
+        },
+        {
+            number: "0050",
+            name: "元大台灣50",
+            net_worth: "137.24",
+            market_price: "136.95",
+            discount: -0.29,
+            discount_rate: -0.21
+        },
+        {
+            number: "0050",
+            name: "元大台灣50",
+            net_worth: "137.24",
+            market_price: "136.95",
+            discount: -0.29,
+            discount_rate: -0.21
+        }
+    ]
 }
 
-const rows = [
-    createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-    createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-    createData('Eclair', 262, 16.0, 24, 6.0),
-    createData('Cupcake', 305, 3.7, 67, 4.3),
-    createData('Gingerbread', 356, 16.0, 49, 3.9),
-];
-
 function ETFTable() {
-    // const classes = useStyles();
 
     return (
         <TableContainer component={Paper}>
             <Table className={styles.table} size="small" aria-label="a dense table">
                 <TableHead>
                     <TableRow>
-                        <TableCell>Dessert (100g serving)</TableCell>
-                        <TableCell align="right">Calories</TableCell>
-                        <TableCell align="right">Fat&nbsp;(g)</TableCell>
-                        <TableCell align="right">Carbs&nbsp;(g)</TableCell>
-                        <TableCell align="right">Protein&nbsp;(g)</TableCell>
+                        {data.header.map((col) => (
+                            <TableCell >{col}</TableCell>
+                        ))}
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map((row) => (
+                    {data.content.map((row) => (
                         <TableRow key={row.name}>
                             <TableCell component="th" scope="row">
-                                {row.name}
+                                {row.number}
                             </TableCell>
-                            <TableCell align="right">{row.calories}</TableCell>
-                            <TableCell align="right">{row.fat}</TableCell>
-                            <TableCell align="right">{row.carbs}</TableCell>
-                            <TableCell align="right">{row.protein}</TableCell>
+                            <TableCell>{row.name}</TableCell>
+                            <TableCell>{row.net_worth}</TableCell>
+                            <TableCell>{row.market_price}</TableCell>
+                            <TableCell>{row.discount}</TableCell>
+                            <TableCell>{row.discount_rate}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
